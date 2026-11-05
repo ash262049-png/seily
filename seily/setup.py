@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import threading
 
@@ -115,10 +116,14 @@ class Window(Gtk.ApplicationWindow):
 
         note = Gtk.Label(label='Texture detail is experimental and may be ignored by Roblox. You can also lower graphics quality in game.')
         note.set_wrap(True); note.set_xalign(0); note.add_css_class('dim-label'); box.append(note)
-        self.status = Gtk.Label(label='Settings are saved when you press Play.')
+        self.status = Gtk.Label(label='Save your settings or start Roblox.')
         self.status.set_wrap(True); self.status.set_xalign(0); self.status.add_css_class('dim-label'); box.append(self.status)
+        actions = Gtk.Box(spacing=8)
+        save = Gtk.Button(label='Save settings'); save.connect('clicked', self.on_save)
+        actions.append(save)
         self.play = Gtk.Button(label='Play Roblox  →'); self.play.add_css_class('suggested-action')
-        self.play.connect('clicked', self.on_play); box.append(self.play)
+        self.play.set_hexpand(True); self.play.connect('clicked', self.on_play); actions.append(self.play)
+        box.append(actions)
         self.set_values(load_settings())
 
     def set_values(self, settings):
@@ -129,16 +134,26 @@ class Window(Gtk.ApplicationWindow):
 
     def apply_preset(self, _button, name):
         self.set_values(PRESETS[name])
-        self.status.set_text(f'{name} preset selected. Press Play to save it.')
+        self.status.set_text(f'{name} preset selected. Save your settings or press Play.')
 
-    def on_play(self, _button):
+    def current_settings(self):
         settings = {key: OPTIONS[key][dropdown.get_selected()][1] for key, dropdown in self.controls.items()}
         settings['multithreaded'] = self.multi.get_active()
+        return settings
+
+    def on_save(self, _button):
         try:
-            save_settings(settings)
+            save_settings(self.current_settings())
         except OSError as error:
             self.status.set_text(f'Could not save settings: {error}')
+            return False
+        self.status.set_text('Settings saved. Seily will use them next time you play.')
+        return True
+
+    def on_play(self, _button):
+        if not self.on_save(None):
             return
+        settings = self.current_settings()
         self.play.set_sensitive(False)
         self.status.set_text('Checking for Mocktail updates, then starting Roblox…')
         threading.Thread(target=self.launch, args=(settings,), daemon=True).start()
@@ -186,4 +201,26 @@ class App(Gtk.Application):
 
 
 if __name__ == '__main__':
-    App().run(None)
+    if sys.argv[1:] == ['--play']:
+        try:
+            seily.prepare_runtime()
+            env = seily.runtime_environment(load_settings())
+            with (seily.ROOT / 'launcher.log').open('a') as log:
+                os.dup2(log.fileno(), 1)
+                os.dup2(log.fileno(), 2)
+            os.execve(str(seily.RUNTIME), [str(seily.RUNTIME)], env)
+        except (OSError, RuntimeError, ValueError) as error:
+            app = Gtk.Application(application_id='io.github.seily.LaunchError')
+            def show_error(application):
+                window = Gtk.ApplicationWindow(application=application, title='Seily could not start')
+                box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+                for setter in (box.set_margin_top, box.set_margin_bottom, box.set_margin_start, box.set_margin_end):
+                    setter(24)
+                message = Gtk.Label(label=str(error)); message.set_wrap(True); box.append(message)
+                close = Gtk.Button(label='Close'); close.connect('clicked', lambda _: window.close()); box.append(close)
+                window.set_child(box); window.present()
+            app.connect('activate', show_error)
+            app.run(None)
+            sys.exit(1)
+    else:
+        App().run(None)

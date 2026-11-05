@@ -28,6 +28,7 @@ bash seily/install.sh
 ```
 
 Keep the source directory in place: the app-menu entry runs its `setup.py`.
+Open **Seily** to play directly, or **Seily Settings** to change and save presets.
 On first launch Seily downloads the official Mocktail AppImage. Seily's launcher
 and source are not auto-updated; only the Mocktail runtime is. Roblox's in-game
 graphics settings control visual quality. Seily also offers an experimental

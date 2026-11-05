@@ -22,13 +22,17 @@ Type=Application
 Name=Seily
 GenericName=Roblox Player
 Comment=Play Roblox on Linux with Seily
-Exec=python3 "{entry}"
+Exec=python3 "{entry}" --play
 Icon={data / 'icons/hicolor/512x512/apps/seily.png'}
 Categories=Game;
 Terminal=false
 StartupNotify=true
 '''
 (data / 'applications/seily.desktop').write_text(desktop)
+settings = desktop.replace('Name=Seily\n', 'Name=Seily Settings\n').replace(
+    'Comment=Play Roblox on Linux with Seily', 'Comment=Configure Seily graphics and performance').replace(
+    f'Exec=python3 "{entry}" --play', f'Exec=python3 "{entry}"')
+(data / 'applications/seily-settings.desktop').write_text(settings)
 PY
 if command -v update-desktop-database >/dev/null; then
   update-desktop-database "$data/applications"

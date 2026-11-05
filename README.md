@@ -20,7 +20,7 @@ cd seily
 bash seily/install.sh
 ```
 
-Open **Seily** from your application menu. Keep the cloned folder in place, since the launcher runs from it. On first launch, Seily downloads the official Mocktail AppImage; Mocktail downloads the Roblox client separately.
+Open **Seily** from your application menu to play directly, or **Seily Settings** to change presets and save them. Keep the cloned folder in place, since the launcher runs from it. On first launch, Seily downloads the official Mocktail AppImage; Mocktail downloads the Roblox client separately.
 
 ## Settings and updates
 
