@@ -95,14 +95,14 @@ def runtime_command():
     with RUNTIME.open('rb') as file:
         digest = hashlib.file_digest(file, 'sha256').hexdigest()
     if digest != MIC_FIX_SHA256:
-        return RUNTIME
+        return [str(RUNTIME)]
     profile = Path(__file__).with_name('roblox-compatibility-1.0.5.json')
     if not profile.is_file():
-        return RUNTIME
+        return [str(RUNTIME)]
     cached = ROOT / ('runtime-' + digest)
     appdir = cached / 'AppDir'
     if (appdir / 'AppRun').is_file() and (cached / '.seily-ready').is_file():
-        return appdir / 'AppRun'
+        return named_runtime_command(appdir)
     ROOT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='.runtime-', dir=ROOT) as temp:
         subprocess.run([str(RUNTIME), '--appimage-extract'], cwd=temp, check=True,
@@ -118,7 +118,21 @@ def runtime_command():
         except FileExistsError:
             if not (cached / '.seily-ready').is_file():
                 raise RuntimeError('The cached runtime is incomplete.')
-    return appdir / 'AppRun'
+    return named_runtime_command(appdir)
+
+
+def named_runtime_command(appdir):
+    # sharun dispatches by executable basename. Hard links preserve the exact
+    # upstream executable while letting Linux identify the game process as seily.
+    for directory in ('bin', 'shared/bin'):
+        original = appdir / directory / 'mocktail'
+        alias = appdir / directory / 'seily'
+        try:
+            os.link(original, alias)
+        except FileExistsError:
+            if not os.path.samefile(original, alias):
+                raise RuntimeError('The Seily runtime alias is not the expected executable.')
+    return [str(appdir / 'AppRun'), 'seily']
 
 
 def main():
@@ -129,7 +143,7 @@ def main():
         return 1
     env = runtime_environment()
     command = runtime_command()
-    os.execve(str(command), [str(command), *sys.argv[1:]], env)
+    os.execve(command[0], [*command, *sys.argv[1:]], env)
 
 
 if __name__ == '__main__':

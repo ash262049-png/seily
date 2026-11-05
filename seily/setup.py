@@ -21,7 +21,7 @@ PRESETS = {
     'Roblox defaults': {'fps': '-1', 'vsync': 'auto', 'backend': 'direct-vulkan', 'multithreaded': False, 'texture': 'default'},
 }
 OPTIONS = {
-    'fps': [('Roblox default', '-1'), ('Display refresh rate', 'display'), ('Uncapped (request 9999 FPS)', 'unlimited'), ('60 FPS', '60'), ('120 FPS', '120'), ('144 FPS', '144'), ('240 FPS', '240')],
+    'fps': [('Roblox default', '-1'), ('Display refresh rate', 'display'), ('High (request 9999; may cap)', 'unlimited'), ('60 FPS', '60'), ('120 FPS', '120'), ('144 FPS', '144'), ('240 FPS', '240')],
     'vsync': [('Automatic', 'auto'), ('Off (may tear)', 'off'), ('On', 'on')],
     'backend': [('Vulkan (recommended)', 'direct-vulkan'), ('OpenGL', 'opengl'), ('System default', 'system'), ('ANGLE over Vulkan', 'angle-vulkan')],
     'texture': [('Automatic (Roblox / Mocktail)', 'default'), ('Balanced (mip bias 1)', '1'), ('Lower detail (mip bias 2)', '2')],
@@ -165,7 +165,7 @@ class Window(Gtk.ApplicationWindow):
             command = seily.runtime_command()
             log = seily.ROOT / 'launcher.log'
             with log.open('a') as output:
-                subprocess.Popen([str(command)], env=env, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+                subprocess.Popen(command, env=env, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
             GLib.idle_add(self.close)
         except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
             GLib.idle_add(self.failed, str(error))
@@ -210,7 +210,7 @@ if __name__ == '__main__':
             with (seily.ROOT / 'launcher.log').open('a') as log:
                 os.dup2(log.fileno(), 1)
                 os.dup2(log.fileno(), 2)
-            os.execve(str(command), [str(command)], env)
+            os.execve(command[0], command, env)
         except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
             app = Gtk.Application(application_id='io.github.seily.LaunchError')
             def show_error(application):

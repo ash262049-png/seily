@@ -12,6 +12,14 @@ On Fedora:
 sudo dnf install git python3 python3-gobject gtk4 fuse-libs
 ```
 
+On Arch Linux:
+
+```bash
+sudo pacman -S --needed git python python-gobject gtk4 fuse2
+```
+
+For AppImages, ensure FUSE is working on your system.
+
 Clone this repository and install the app launcher:
 
 ```bash

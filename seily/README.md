@@ -21,6 +21,8 @@ On x86-64 Linux, install Python 3, PyGObject, GTK 4, and an AppImage runtime
 (including FUSE where needed). On Fedora, `sudo dnf install python3-gobject gtk4`
 installs the UI dependencies. Clone your own copy and install:
 
+On Arch Linux, install them with `sudo pacman -S --needed git python python-gobject gtk4 fuse2`.
+
 ```sh
 git clone https://github.com/ash262049-png/seily.git
 cd seily
