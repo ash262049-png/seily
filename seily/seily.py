@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib.request
@@ -14,6 +15,7 @@ ROOT = HOME / '.local/share/seily'
 RUNTIME = ROOT / 'Mocktail.AppImage'
 API = 'https://api.github.com/repos/komaruworld/mocktail/releases/latest'
 HEADERS = {'User-Agent': 'Seily-launcher', 'Accept': 'application/vnd.github+json'}
+MIC_FIX_SHA256 = '5f132c5e1cb6cbf1b92c48a0bdbfcdd0d70f1c5acc6ea722ea6f9e2dc550ef65'
 
 
 def update():
@@ -88,6 +90,37 @@ def runtime_environment(settings=None):
     return env
 
 
+def runtime_command():
+    """Use the verified, exact-build input profile only with its matching runtime."""
+    with RUNTIME.open('rb') as file:
+        digest = hashlib.file_digest(file, 'sha256').hexdigest()
+    if digest != MIC_FIX_SHA256:
+        return RUNTIME
+    profile = Path(__file__).with_name('roblox-compatibility-1.0.5.json')
+    if not profile.is_file():
+        return RUNTIME
+    cached = ROOT / ('runtime-' + digest)
+    appdir = cached / 'AppDir'
+    if (appdir / 'AppRun').is_file() and (cached / '.seily-ready').is_file():
+        return appdir / 'AppRun'
+    ROOT.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='.runtime-', dir=ROOT) as temp:
+        subprocess.run([str(RUNTIME), '--appimage-extract'], cwd=temp, check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        unpacked = Path(temp) / 'AppDir'
+        metadata = unpacked / 'share/mocktail/metadata/roblox_compatibility.json'
+        if not (unpacked / 'AppRun').is_file() or not metadata.is_file():
+            raise RuntimeError('The extracted Mocktail runtime is missing required files.')
+        shutil.copyfile(profile, metadata)
+        (Path(temp) / '.seily-ready').write_text(digest + '\n')
+        try:
+            os.rename(temp, cached)
+        except FileExistsError:
+            if not (cached / '.seily-ready').is_file():
+                raise RuntimeError('The cached runtime is incomplete.')
+    return appdir / 'AppRun'
+
+
 def main():
     try:
         prepare_runtime()
@@ -95,7 +128,8 @@ def main():
         print(f'Seily: {error}', file=sys.stderr)
         return 1
     env = runtime_environment()
-    os.execve(str(RUNTIME), [str(RUNTIME), *sys.argv[1:]], env)
+    command = runtime_command()
+    os.execve(str(command), [str(command), *sys.argv[1:]], env)
 
 
 if __name__ == '__main__':

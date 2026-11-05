@@ -162,11 +162,12 @@ class Window(Gtk.ApplicationWindow):
         try:
             seily.prepare_runtime()
             env = seily.runtime_environment(settings)
+            command = seily.runtime_command()
             log = seily.ROOT / 'launcher.log'
             with log.open('a') as output:
-                subprocess.Popen([str(seily.RUNTIME)], env=env, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+                subprocess.Popen([str(command)], env=env, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
             GLib.idle_add(self.close)
-        except (OSError, RuntimeError, ValueError) as error:
+        except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
             GLib.idle_add(self.failed, str(error))
 
     def failed(self, message):
@@ -205,11 +206,12 @@ if __name__ == '__main__':
         try:
             seily.prepare_runtime()
             env = seily.runtime_environment(load_settings())
+            command = seily.runtime_command()
             with (seily.ROOT / 'launcher.log').open('a') as log:
                 os.dup2(log.fileno(), 1)
                 os.dup2(log.fileno(), 2)
-            os.execve(str(seily.RUNTIME), [str(seily.RUNTIME)], env)
-        except (OSError, RuntimeError, ValueError) as error:
+            os.execve(str(command), [str(command)], env)
+        except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
             app = Gtk.Application(application_id='io.github.seily.LaunchError')
             def show_error(application):
                 window = Gtk.ApplicationWindow(application=application, title='Seily could not start')

@@ -35,4 +35,8 @@ graphics settings control visual quality. Seily also offers an experimental
 texture mip-bias override; Roblox may ignore it. Performance settings are
 requests, not guaranteed FPS gains.
 
+For the verified Mocktail 1.0.5 AppImage, Seily uses a build-specific audio
+profile to expose host microphones. Its first launch extracts a runtime copy
+(roughly 600 MB). Other runtime versions use their upstream profiles.
+
 Upstream: https://github.com/komaruworld/mocktail (Apache-2.0).
