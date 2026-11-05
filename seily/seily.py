@@ -71,7 +71,7 @@ def runtime_environment(settings=None):
     env['MOCKTAIL_GRAPHICS_BACKEND'] = settings.get('backend', 'direct-vulkan')
     env['MOCKTAIL_MULTITHREADED_RENDERING'] = '1' if settings.get('multithreaded', False) else '0'
     texture = settings.get('texture', 'default')
-    if texture in ('0', '1', '2', '3'):
+    if texture in ('1', '2'):
         try:
             overrides = json.loads(env.get('MOCKTAIL_CLIENT_SETTINGS_OVERRIDES_JSON', '{}'))
             if not isinstance(overrides, dict):
@@ -80,6 +80,9 @@ def runtime_environment(settings=None):
             raise ValueError('client settings overrides contain invalid JSON') from error
         overrides['FIntRenderTextureMipBias'] = texture
         env['MOCKTAIL_CLIENT_SETTINGS_OVERRIDES_JSON'] = json.dumps(overrides)
+        # Mocktail's throughput policy chooses bias 2 only for quality "1";
+        # match it so that it doesn't reject the explicit override as a conflict.
+        env['MOCKTAIL_GRAPHICS_QUALITY'] = '1' if texture == '2' else 'auto'
     return env
 
 

@@ -9,7 +9,7 @@ import threading
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib, Gtk, GdkPixbuf
 
 import seily
 
@@ -23,7 +23,7 @@ OPTIONS = {
     'fps': [('Roblox default', '-1'), ('Display refresh rate', 'display'), ('Unlimited', 'unlimited'), ('60 FPS', '60'), ('120 FPS', '120'), ('144 FPS', '144'), ('240 FPS', '240')],
     'vsync': [('Automatic', 'auto'), ('Off (may tear)', 'off'), ('On', 'on')],
     'backend': [('Vulkan (recommended)', 'direct-vulkan'), ('OpenGL', 'opengl'), ('System default', 'system'), ('ANGLE over Vulkan', 'angle-vulkan')],
-    'texture': [('Automatic (Roblox / Mocktail)', 'default'), ('Sharper (mip bias 0)', '0'), ('Balanced (mip bias 1)', '1'), ('Lower detail (mip bias 2)', '2'), ('Lowest detail (mip bias 3)', '3')],
+    'texture': [('Automatic (Roblox / Mocktail)', 'default'), ('Balanced (mip bias 1)', '1'), ('Lower detail (mip bias 2)', '2')],
 }
 
 
@@ -64,20 +64,30 @@ class Window(Gtk.ApplicationWindow):
         self.set_icon_name('seily')
         scroll = Gtk.ScrolledWindow()
         self.set_child(scroll)
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
-        box.set_margin_top(32); box.set_margin_bottom(32)
-        box.set_margin_start(36); box.set_margin_end(36)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+        box.set_size_request(560, -1)
+        box.set_halign(Gtk.Align.CENTER)
+        box.set_valign(Gtk.Align.START)
+        box.set_margin_top(48); box.set_margin_bottom(48)
+        box.set_margin_start(24); box.set_margin_end(24)
         scroll.set_child(box)
-        title = Gtk.Label(label='Seily')
-        title.add_css_class('title-1')
-        title.set_xalign(0)
-        box.append(title)
-        desc = Gtk.Label(label='YOUR GAME, YOUR SETTINGS')
-        desc.set_xalign(0); desc.set_wrap(True); desc.add_css_class('dim-label')
-        box.append(desc)
+        header = Gtk.Box(spacing=16)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(Path(__file__).with_name('seily.png')), 48, 48, True)
+        logo = Gtk.Image.new_from_pixbuf(pixbuf)
+        header.append(logo)
+        headings = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        title = Gtk.Label(label='Seily'); title.add_css_class('title-1'); title.set_xalign(0)
+        desc = Gtk.Label(label='Roblox for Linux'); desc.set_xalign(0); desc.add_css_class('dim-label')
+        headings.append(title); headings.append(desc); header.append(headings)
+        box.append(header)
 
-        preset_label = Gtk.Label(label='Quick setup'); preset_label.set_xalign(0)
-        preset_label.add_css_class('heading'); box.append(preset_label)
+        intro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        intro.set_margin_top(12)
+        label = Gtk.Label(label='Ready to play?'); label.set_xalign(0); label.add_css_class('section-title'); intro.append(label)
+        subtitle = Gtk.Label(label='Pick a preset or fine-tune your settings below.')
+        subtitle.set_xalign(0); subtitle.add_css_class('dim-label'); intro.append(subtitle)
+        box.append(intro)
+
         buttons = Gtk.Box(spacing=8)
         for name in PRESETS:
             button = Gtk.Button(label=name)
@@ -85,22 +95,29 @@ class Window(Gtk.ApplicationWindow):
             button.set_hexpand(True); buttons.append(button)
         box.append(buttons)
 
+        settings_label = Gtk.Label(label='GRAPHICS & PERFORMANCE'); settings_label.set_xalign(0)
+        settings_label.add_css_class('eyebrow'); settings_label.set_margin_top(8); box.append(settings_label)
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        card.add_css_class('settings-card')
         self.controls = {}
-        for key, label in [('fps', 'Frame rate'), ('vsync', 'Vertical sync'), ('backend', 'Graphics renderer'), ('texture', 'Texture detail · experimental')]:
-            row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-            heading = Gtk.Label(label=label); heading.set_xalign(0); heading.add_css_class('heading')
+        for key, label in [('fps', 'Frame rate'), ('vsync', 'Vertical sync'), ('backend', 'Renderer'), ('texture', 'Texture detail')]:
+            row = Gtk.Box(spacing=16); row.add_css_class('setting-row')
+            heading = Gtk.Label(label=label); heading.set_xalign(0); heading.set_hexpand(True)
             row.append(heading)
             dropdown = Gtk.DropDown.new_from_strings([name for name, _ in OPTIONS[key]])
-            row.append(dropdown); self.controls[key] = dropdown; box.append(row)
-        row = Gtk.Box(spacing=12)
+            dropdown.set_size_request(255, -1)
+            row.append(dropdown); self.controls[key] = dropdown; card.append(row)
+            card.append(Gtk.Separator())
+        row = Gtk.Box(spacing=16); row.add_css_class('setting-row')
         label = Gtk.Label(label='Multithreaded rendering'); label.set_xalign(0); label.set_hexpand(True)
-        self.multi = Gtk.Switch(); row.append(label); row.append(self.multi); box.append(row)
+        self.multi = Gtk.Switch(); self.multi.set_valign(Gtk.Align.CENTER)
+        row.append(label); row.append(self.multi); card.append(row); box.append(card)
 
-        note = Gtk.Label(label='Texture detail requests a mip bias override. Roblox may ignore it; higher values can look blurrier. For more performance, lower Graphics Quality in Roblox settings too.')
+        note = Gtk.Label(label='Texture detail is experimental and may be ignored by Roblox. You can also lower graphics quality in game.')
         note.set_wrap(True); note.set_xalign(0); note.add_css_class('dim-label'); box.append(note)
         self.status = Gtk.Label(label='Settings are saved when you press Play.')
         self.status.set_wrap(True); self.status.set_xalign(0); self.status.add_css_class('dim-label'); box.append(self.status)
-        self.play = Gtk.Button(label='Play Roblox'); self.play.add_css_class('suggested-action')
+        self.play = Gtk.Button(label='Play Roblox  →'); self.play.add_css_class('suggested-action')
         self.play.connect('clicked', self.on_play); box.append(self.play)
         self.set_values(load_settings())
 
@@ -150,13 +167,17 @@ class App(Gtk.Application):
         from gi.repository import Gdk
         css = Gtk.CssProvider()
         css.load_from_data(b'''
-            window { background: #101827; color: #edf5ff; }
-            label.title-1 { font-size: 32px; font-weight: 800; color: #f2f8ff; }
-            .heading { color: #cbdaf0; font-weight: 700; }
-            .dim-label { color: #98abc6; }
-            button { border-radius: 12px; padding: 10px 14px; }
-            button.suggested-action { background: #168cf2; color: white; font-weight: 800; padding: 15px; }
-            dropdown > button { background: #202e44; border: 1px solid #35465d; color: #f0f6ff; }
+            window { background: #11151c; color: #eef1f5; }
+            label.title-1 { font-size: 25px; font-weight: 750; color: #f7f9fc; }
+            .section-title { font-size: 20px; font-weight: 700; }
+            .eyebrow { color: #8a9bb0; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+            .dim-label { color: #a4afbd; }
+            .settings-card { background: #1a202a; border: 1px solid #303a47; border-radius: 12px; }
+            .setting-row { padding: 10px 14px; }
+            separator { background: #303a47; min-height: 1px; }
+            button { border-radius: 8px; padding: 8px 12px; }
+            button.suggested-action { background: #258ce0; color: white; font-weight: 700; padding: 13px; }
+            dropdown > button { background: #252e3a; border: 1px solid #3b4756; color: #f0f4f8; }
             switch { border-radius: 14px; }
         ''')
         Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
