@@ -10,18 +10,20 @@ release's SHA-256 checksum before replacing its cached runtime. If the check or
 download fails, the last cached runtime is used. Roblox's client is downloaded
 separately by Mocktail. Seily does not update the source tree automatically.
 
-Seily asks Mocktail for unlimited FPS and disables vsync. Actual FPS depends on
-Roblox, drivers and hardware; tearing and increased heat/power use are possible.
-If you prefer the defaults, remove those two environment settings in seily.py.
+The setup window lets you choose an FPS limit and vsync mode. Actual FPS depends
+on Roblox, drivers and hardware; disabling vsync can cause tearing and uncapped
+FPS can increase heat and power use.
 The runtime and isolated configuration/data are under ~/.local/share/seily/.
 
 ## Install
 
 On x86-64 Linux, install Python 3, PyGObject, GTK 4, and an AppImage runtime
 (including FUSE where needed). On Fedora, `sudo dnf install python3-gobject gtk4`
-installs the UI dependencies. From the project root, run:
+installs the UI dependencies. Clone your own copy and install:
 
 ```sh
+git clone https://github.com/ash262049-png/seily.git
+cd seily
 bash seily/install.sh
 ```
 
