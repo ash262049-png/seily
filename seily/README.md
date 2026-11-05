@@ -30,7 +30,8 @@ bash seily/install.sh
 Keep the source directory in place: the app-menu entry runs its `setup.py`.
 On first launch Seily downloads the official Mocktail AppImage. Seily's launcher
 and source are not auto-updated; only the Mocktail runtime is. Roblox's in-game
-graphics settings control visual quality; the launcher does not claim to set
-texture quality. Performance settings are requests, not guaranteed FPS gains.
+graphics settings control visual quality. Seily also offers an experimental
+texture mip-bias override; Roblox may ignore it. Performance settings are
+requests, not guaranteed FPS gains.
 
 Upstream: https://github.com/komaruworld/mocktail (Apache-2.0).

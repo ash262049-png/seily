@@ -70,6 +70,16 @@ def runtime_environment(settings=None):
     env['MOCKTAIL_VSYNC'] = settings.get('vsync', 'off')
     env['MOCKTAIL_GRAPHICS_BACKEND'] = settings.get('backend', 'direct-vulkan')
     env['MOCKTAIL_MULTITHREADED_RENDERING'] = '1' if settings.get('multithreaded', False) else '0'
+    texture = settings.get('texture', 'default')
+    if texture in ('0', '1', '2', '3'):
+        try:
+            overrides = json.loads(env.get('MOCKTAIL_CLIENT_SETTINGS_OVERRIDES_JSON', '{}'))
+            if not isinstance(overrides, dict):
+                raise ValueError('client settings overrides must be a JSON object')
+        except json.JSONDecodeError as error:
+            raise ValueError('client settings overrides contain invalid JSON') from error
+        overrides['FIntRenderTextureMipBias'] = texture
+        env['MOCKTAIL_CLIENT_SETTINGS_OVERRIDES_JSON'] = json.dumps(overrides)
     return env
 
 

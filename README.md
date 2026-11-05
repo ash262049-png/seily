@@ -24,7 +24,7 @@ Open **Seily** from your application menu. Keep the cloned folder in place, sinc
 
 ## Settings and updates
 
-Choose an FPS limit, vsync mode, graphics renderer, and multithreaded rendering in Seily's setup window. Roblox's in-game Graphics Quality setting controls visual quality. Performance depends on your hardware and the experience.
+Choose an FPS limit, vsync mode, graphics renderer, multithreaded rendering, and an experimental texture-detail override in Seily's setup window. Roblox may ignore the texture override; its in-game Graphics Quality setting also controls visual quality. Performance depends on your hardware and the experience.
 
 Seily checks for official Mocktail runtime updates when you press Play, verifies their published SHA-256 checksum, and keeps the cached runtime if an update fails. **Seily's own launcher and source are not updated automatically.** To update them, run `git pull` inside your Seily clone.
 
