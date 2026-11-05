@@ -1,3 +1,5 @@
+<img src="seily/seily.png" alt="Seily sailboat icon" width="128">
+
 # Seily
 
 Seily is a Linux launcher for the Android version of Roblox, based on [Mocktail](https://github.com/komaruworld/mocktail). It includes performance presets, a setup window, and automatic updates for the official Mocktail runtime.
