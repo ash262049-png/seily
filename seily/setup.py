@@ -21,7 +21,7 @@ PRESETS = {
     'Roblox defaults': {'fps': '-1', 'vsync': 'auto', 'backend': 'direct-vulkan', 'multithreaded': False, 'texture': 'default'},
 }
 OPTIONS = {
-    'fps': [('Roblox default', '-1'), ('Display refresh rate', 'display'), ('Unlimited', 'unlimited'), ('60 FPS', '60'), ('120 FPS', '120'), ('144 FPS', '144'), ('240 FPS', '240')],
+    'fps': [('Roblox default', '-1'), ('Display refresh rate', 'display'), ('Uncapped (request 9999 FPS)', 'unlimited'), ('60 FPS', '60'), ('120 FPS', '120'), ('144 FPS', '144'), ('240 FPS', '240')],
     'vsync': [('Automatic', 'auto'), ('Off (may tear)', 'off'), ('On', 'on')],
     'backend': [('Vulkan (recommended)', 'direct-vulkan'), ('OpenGL', 'opengl'), ('System default', 'system'), ('ANGLE over Vulkan', 'angle-vulkan')],
     'texture': [('Automatic (Roblox / Mocktail)', 'default'), ('Balanced (mip bias 1)', '1'), ('Lower detail (mip bias 2)', '2')],

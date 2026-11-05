@@ -66,7 +66,9 @@ def runtime_environment(settings=None):
         path = ROOT / suffix
         path.mkdir(parents=True, exist_ok=True)
         env[name] = str(path)
-    env['MOCKTAIL_FRAME_RATE_LIMIT'] = settings.get('fps', 'unlimited')
+    fps = settings.get('fps', 'unlimited')
+    # Mocktail's "unlimited" maps to 240; request a higher explicit target.
+    env['MOCKTAIL_FRAME_RATE_LIMIT'] = '9999' if fps == 'unlimited' else fps
     env['MOCKTAIL_VSYNC'] = settings.get('vsync', 'off')
     env['MOCKTAIL_GRAPHICS_BACKEND'] = settings.get('backend', 'direct-vulkan')
     env['MOCKTAIL_MULTITHREADED_RENDERING'] = '1' if settings.get('multithreaded', False) else '0'
